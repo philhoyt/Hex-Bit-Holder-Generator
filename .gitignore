@@ -1,0 +1,6 @@
+.DS_Store
+*.stl
+*.3mf
+*.zip
+.claude/
+node_modules/

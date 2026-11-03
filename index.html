@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Design custom 3D-printable holders for hex shank bits: rows of pockets, labels, flex slots, and a flared mouth on every hole.">
+<style>[hidden]{display:none!important}body{margin:0}img{max-width:100%}</style>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#1C1C1A">
+<title>Hex Bit Holder Builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;800&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: workbench. Controls rail on the left, live 3D on the right. The plan view is the map of the holder from above. */
+:root {
+  --bg: #E7E6E0;
+  --panel: #F5F4EF;
+  --ink: #1C1C1A;
+  --muted: #66655E;
+  --line: #CFCDC4;
+  --accent: #E8671B;
+  --accent-deep: #BF4F0E;
+  --accent-soft: #F0A878;
+  --case: #242422;
+  --case-line: #3A3A37;
+  --pocket: #151514;
+  --stage: #DCDAD2;
+  --ok: #2F7D4A;
+  --warn: #A3511B;
+  --display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --body: "Barlow", "Helvetica Neue", Arial, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #141413; --panel: #1D1D1B; --ink: #ECEAE2; --muted: #9B998F; --line: #34332F;
+    --accent: #F0722A; --accent-deep: #D45C14; --accent-soft: #8A4A26; --case: #0B0B0A; --case-line: #2C2C29; --pocket: #000;
+    --stage: #232321; --ok: #5DBB7E; --warn: #E08A4F; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #141413; --panel: #1D1D1B; --ink: #ECEAE2; --muted: #9B998F; --line: #34332F;
+  --accent: #F0722A; --accent-deep: #D45C14; --accent-soft: #8A4A26; --case: #0B0B0A; --case-line: #2C2C29; --pocket: #000;
+  --stage: #232321; --ok: #5DBB7E; --warn: #E08A4F; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.45; padding: 20px 16px 40px; }
+.wrap { max-width: 1240px; margin: 0 auto; display: grid; gap: 20px; }
+
+header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; border-bottom: 2px solid var(--ink); padding-bottom: 14px; }
+.brand { display: grid; gap: 2px; }
+.brand h1 { font-family: var(--display); font-weight: 800; font-size: 1.05rem; letter-spacing: .14em; text-transform: uppercase; margin: 0; }
+.brand p { margin: 0; color: var(--muted); font-size: .9rem; }
+.code-plate { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+.code { font-family: var(--display); font-weight: 800; font-size: clamp(3rem, 9vw, 5.25rem); line-height: .85; letter-spacing: .01em; background: var(--accent); color: #fff; padding: 6px 14px 2px; border-radius: 3px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.code.empty { background: transparent; color: var(--muted); border: 2px dashed var(--line); font-size: 2rem; }
+.code-meta { font-family: var(--mono); font-size: .8rem; color: var(--muted); display: grid; gap: 2px; font-variant-numeric: tabular-nums; }
+.code-meta b { color: var(--ink); font-weight: 600; }
+
+.main { display: grid; grid-template-columns: minmax(0, 420px) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 860px) { .main { grid-template-columns: minmax(0, 1fr); } .stage-col { position: static; } }
+
+.rail { display: grid; gap: 14px; min-width: 0; }
+.group { background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: 14px; display: grid; gap: 12px; min-width: 0; }
+.group > h2 { font-family: var(--display); font-weight: 600; font-size: .95rem; letter-spacing: .12em; text-transform: uppercase; margin: 0; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.group > h2 small { font-family: var(--body); letter-spacing: 0; text-transform: none; font-weight: 400; color: var(--muted); font-size: .82rem; }
+.group.disabled { opacity: .45; pointer-events: none; }
+
+.seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+.seg button { font: inherit; font-size: .88rem; border: 0; background: transparent; color: var(--ink); padding: 8px 6px; cursor: pointer; border-left: 1px solid var(--line); line-height: 1.2; }
+.seg button:first-child { border-left: 0; }
+.seg button small { display: block; font-family: var(--mono); font-size: .7rem; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
+.seg button[aria-pressed="true"] small { color: var(--accent); }
+
+.plan { width: 100%; height: auto; display: block; user-select: none; -webkit-user-select: none; background: var(--stage); border-radius: 4px; }
+.plan .body { fill: var(--case); stroke: var(--case-line); stroke-width: .4; }
+.plan .slot { fill: var(--case-line); }
+.plan .hole { fill: var(--pocket); stroke: var(--accent-soft); stroke-width: .35; cursor: pointer; }
+.plan .hole.on { stroke: var(--accent); stroke-width: .7; }
+.plan .row-band { fill: transparent; cursor: pointer; }
+.plan .row-band:hover { fill: rgba(232, 103, 27, .12); }
+.plan .lbl { font-family: var(--mono); font-weight: 600; fill: var(--accent-soft); text-anchor: middle; pointer-events: none; }
+.plan .lbl.on { fill: var(--accent); }
+.plan .row-num { font-family: var(--display); font-weight: 800; fill: var(--muted); text-anchor: middle; pointer-events: none; }
+.plan .axis { font-family: var(--mono); fill: var(--muted); text-anchor: middle; letter-spacing: .1em; }
+.map-note { font-size: .82rem; color: var(--muted); margin: 0; }
+
+.toolbar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.chip { font-family: var(--mono); font-size: .75rem; border: 1px solid var(--line); background: transparent; color: var(--ink); padding: 4px 8px; border-radius: 3px; cursor: pointer; }
+.chip:hover { border-color: var(--ink); }
+.chip span { color: var(--muted); font-family: var(--body); }
+.chip.quiet { font-family: var(--body); font-size: .8rem; }
+.toolbar .lbl { font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-right: 2px; }
+
+.rowlist { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; max-height: 260px; overflow-y: auto; }
+.rowlist li { display: grid; grid-template-columns: 28px 1fr auto; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: 3px; padding: 4px 4px 4px 6px; cursor: pointer; background: var(--bg); }
+.rowlist li.on { border-color: var(--ink); background: var(--panel); box-shadow: inset 3px 0 0 var(--accent); }
+.rowlist .num { font-family: var(--display); font-weight: 800; font-size: 1.05rem; text-align: center; }
+.rowlist .what { font-family: var(--mono); font-size: .82rem; min-width: 0; }
+.rowlist .what small { display: block; font-family: var(--body); color: var(--muted); font-size: .76rem; }
+.rowlist .del { border: 0; background: transparent; color: var(--muted); font-size: 1.1rem; width: 28px; height: 28px; cursor: pointer; border-radius: 3px; }
+.rowlist .del:hover { background: var(--stage); color: var(--warn); }
+.empty-note { font-size: .85rem; color: var(--muted); margin: 0; }
+
+.size-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.stepper { display: grid; gap: 4px; }
+.stepper label { font-size: .78rem; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+.stepper .ctl { display: grid; grid-template-columns: 34px 1fr 34px; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+.stepper button { font: inherit; font-size: 1.1rem; border: 0; background: transparent; color: var(--ink); cursor: pointer; }
+.stepper button:hover { background: var(--stage); }
+.stepper output { text-align: center; font-family: var(--mono); font-weight: 600; padding: 6px 0; font-variant-numeric: tabular-nums; border-inline: 1px solid var(--line); }
+
+.field { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 4px 10px; }
+.field label, .field .lab { font-size: .9rem; }
+.field .val { font-family: var(--mono); font-size: .8rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.field input[type=range] { grid-column: 1 / -1; width: 100%; accent-color: var(--accent-deep); }
+.field input[type=number] { width: 84px; font: inherit; font-family: var(--mono); font-size: .85rem; padding: 4px 6px; border: 1px solid var(--line); border-radius: 3px; background: var(--bg); color: var(--ink); }
+.lgrid { display: grid; gap: 4px; grid-template-columns: repeat(auto-fill, minmax(56px, 1fr)); }
+.lgrid .cell { width: 100%; min-width: 0; font: inherit; font-family: var(--mono); font-size: .85rem; text-transform: uppercase; text-align: center; padding: 6px 2px; border: 1px solid var(--line); border-radius: 3px; background: var(--bg); color: var(--ink); }
+.lgrid .cell.bad { border-color: #c25a00; }
+.nest { border-left: 2px solid var(--line); padding-left: 12px; display: grid; gap: 10px; }
+.pair { display: grid; grid-template-columns: 96px 1fr; gap: 8px 10px; align-items: center; }
+.row { display: grid; gap: 6px; }
+.row .lab, .pair .lab { font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.sub { font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 4px 0 -4px; }
+
+details.group summary { cursor: pointer; font-family: var(--display); font-weight: 600; font-size: .95rem; letter-spacing: .12em; text-transform: uppercase; list-style: none; display: flex; justify-content: space-between; }
+details.group summary::-webkit-details-marker { display: none; }
+details.group summary::after { content: "+"; font-family: var(--mono); }
+details.group[open] summary::after { content: "−"; }
+.adv { display: grid; gap: 10px; }
+
+.stage-col { position: sticky; top: env(safe-area-inset-top, 0px); display: grid; gap: 12px; min-width: 0; }
+.stage { position: relative; background: var(--stage); border: 1px solid var(--line); border-radius: 4px; aspect-ratio: 4 / 3; max-width: 100%; overflow: hidden; }
+.stage canvas { display: block; width: 100%; height: 100%; }
+.stage .tag { position: absolute; left: 10px; bottom: 8px; font-family: var(--mono); font-size: .72rem; color: var(--muted); pointer-events: none; }
+.stage .reset { position: absolute; right: 10px; bottom: 10px; font: inherit; font-size: .82rem; border: 1px solid var(--line); background: var(--panel); color: var(--ink); padding: 5px 10px; border-radius: 4px; cursor: pointer; }
+.stage .reset:hover { border-color: var(--ink); }
+.stage .err { position: absolute; inset: 0; display: grid; place-items: center; padding: 20px; text-align: center; color: var(--muted); }
+
+.specs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+@media (max-width: 520px) { .specs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.spec { background: var(--panel); padding: 8px 10px; display: grid; gap: 2px; }
+.spec span { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.spec b { font-family: var(--mono); font-weight: 600; font-size: .9rem; font-variant-numeric: tabular-nums; }
+
+.summary { font-size: .88rem; display: flex; gap: 8px; align-items: center; }
+.summary::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--ok); flex: none; }
+
+.actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.btn { font-family: var(--display); font-weight: 600; font-size: 1.05rem; letter-spacing: .08em; text-transform: uppercase; border: 2px solid var(--ink); background: var(--accent); color: #fff; padding: 10px 18px; border-radius: 3px; cursor: pointer; }
+.btn:hover { background: var(--accent-deep); }
+.btn.ghost { background: transparent; color: var(--ink); }
+.btn.ghost:hover { background: var(--stage); }
+.btn:disabled { opacity: .4; cursor: not-allowed; }
+.btn.small { font-size: .85rem; padding: 6px 10px; border-width: 1px; }
+.status { font-size: .85rem; color: var(--muted); min-height: 1.2em; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.copybox { width: 100%; font-family: var(--mono); font-size: .75rem; min-height: 120px; background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 3px; padding: 8px; }
+
+button:focus-visible, input:focus-visible, summary:focus-visible, li:focus-visible { outline: 2px solid var(--accent-deep); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <h1>Hex Bit Holder Builder</h1>
+      <p>Custom holders for hex shank bits. Rows of pockets, labels, flex slots, and a flared mouth on every hole.</p>
+    </div>
+    <div class="code-plate">
+      <div class="code" id="code">8 × 2</div>
+      <div class="code-meta" id="codeMeta"></div>
+    </div>
+  </header>
+
+  <div class="main">
+    <div class="rail">
+      <section class="group" aria-labelledby="h-rows">
+        <h2 id="h-rows">Rows <small>front row at the bottom · click a row to select it</small></h2>
+        <svg class="plan" id="plan" viewBox="0 0 100 40" role="img" aria-label="Plan view of the holder from above. Click a row to select it."></svg>
+        <div class="toolbar" id="presets"></div>
+        <ol class="rowlist" id="rowlist" aria-label="Rows"></ol>
+        <p class="empty-note" id="emptyNote" hidden>No rows yet. Add one, or start from a set below.</p>
+        <div class="toolbar">
+          <button type="button" class="btn ghost small" id="addRow">Add row</button>
+          <span class="lbl">Start from</span>
+          <button type="button" class="chip quiet" id="set-std">1/4 in · 8 × 2</button>
+          <button type="button" class="chip quiet" id="set-mixed">1/4 in + 4 mm</button>
+          <button type="button" class="chip quiet" id="set-driver">Driver set with labels</button>
+          <button type="button" class="chip quiet" id="clearAll">Empty</button>
+        </div>
+      </section>
+
+      <section class="group" id="rowGroup" aria-labelledby="h-row">
+        <h2 id="h-row">Selected row <small id="rowWhich"></small></h2>
+        <div class="row">
+          <span class="lab">Bit size · across the flats</span>
+          <div class="seg" role="group" aria-label="Bit size">
+            <button type="button" data-size="1/4">1/4 in<small>6.35</small></button>
+            <button type="button" data-size="5/16">5/16 in<small>7.94</small></button>
+            <button type="button" data-size="4mm">4 mm</button>
+            <button type="button" data-size="5mm">5 mm</button>
+            <button type="button" data-size="6mm">6 mm</button>
+            <button type="button" data-size="custom">Custom</button>
+          </div>
+          <div class="field" id="customField" hidden><label for="custom">Across the flats (mm)</label><input type="number" id="custom" step="0.05" min="2" max="25"></div>
+        </div>
+        <div class="size-row">
+          <div class="stepper">
+            <label for="count-out">Holes in this row</label>
+            <div class="ctl"><button type="button" id="count-minus" aria-label="Fewer holes">−</button><output id="count-out">8</output><button type="button" id="count-plus" aria-label="More holes">+</button></div>
+          </div>
+          <div class="stepper">
+            <label for="rows-out">Rows</label>
+            <div class="ctl"><button type="button" id="rows-minus" aria-label="Fewer rows">−</button><output id="rows-out">2</output><button type="button" id="rows-plus" aria-label="More rows">+</button></div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="field"><span class="lab">Labels <small style="text-transform:none;letter-spacing:0">one per hole, left to right</small></span><span class="val" id="label-v"></span></div>
+          <div class="lgrid" id="labelGrid"></div>
+        </div>
+        <div class="toolbar">
+          <button type="button" class="btn ghost small" id="clearLabels">Clear labels</button>
+          <button type="button" class="btn ghost small" id="dupRow">Duplicate row</button>
+          <button type="button" class="btn ghost small" id="delRow">Delete row</button>
+        </div>
+      </section>
+
+      <section class="group" aria-labelledby="h-holder">
+        <h2 id="h-holder">Holder</h2>
+        <div class="field">
+          <label for="height">Height</label><span class="val" id="height-v"></span>
+          <input type="range" id="height" min="6" max="60" step="0.5">
+        </div>
+        <div class="pair">
+          <span class="lab">Hole bottom</span>
+          <div class="seg" role="group" aria-label="Hole bottom">
+            <button type="button" data-bottom="closed">Closed</button>
+            <button type="button" data-bottom="through">Through</button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="chamfer">Flared mouth</label><span class="val" id="chamfer-v"></span>
+          <input type="range" id="chamfer" min="0" max="2" step="0.1">
+        </div>
+        <div class="pair">
+          <span class="lab">Flex slots</span>
+          <div class="seg" role="group" aria-label="Flex slots" title="A slot along each row lets the pockets flex and grip">
+            <button type="button" data-slots="off">None</button>
+            <button type="button" data-slots="on">Slot each row</button>
+          </div>
+        </div>
+        <div id="slotBox" class="nest" hidden>
+          <div class="field">
+            <label for="slotPct">Slot depth</label><span class="val" id="slotPct-v"></span>
+            <input type="range" id="slotPct" min="25" max="90" step="5">
+          </div>
+        </div>
+        <div class="field">
+          <label for="cornerR">Corner radius</label><span class="val" id="cornerR-v"></span>
+          <input type="range" id="cornerR" min="0" max="12" step="0.5">
+        </div>
+      </section>
+
+      <details class="group" id="advGroup">
+        <summary>Fit and print</summary>
+        <div class="adv">
+          <div class="field"><label for="clearance">Hole clearance per side</label><input type="number" id="clearance" step="0.05" min="0" max="1"></div>
+          <div class="field"><label for="wall">Wall between holes</label><input type="number" id="wall" step="0.1" min="1" max="12"></div>
+          <div class="field"><label for="edge">Edge wall</label><input type="number" id="edge" step="0.5" min="1" max="20"></div>
+          <div class="field"><label for="floorT">Floor under closed holes</label><input type="number" id="floorT" step="0.1" min="0.6" max="5"></div>
+          <div class="field"><label for="slotW">Slot width</label><input type="number" id="slotW" step="0.1" min="0.8" max="4"></div>
+          <div class="field"><label for="labelCap">Label letter height</label><input type="number" id="labelCap" step="0.5" min="2" max="6"></div>
+          <div class="field"><label for="labelRaise">Label raise</label><input type="number" id="labelRaise" step="0.1" min="0.2" max="1.5"></div>
+          <button type="button" class="btn ghost small" id="resetAdv">Reset to defaults</button>
+          <p class="sub" style="margin-top:6px">Clearance fit test</p>
+          <p class="map-note">A short strip of four holes for the first row's bit size, each with a different clearance and labeled with it. Prints in minutes. Keep the one that grips and enter its clearance above.</p>
+          <button type="button" class="btn ghost small" id="fitTest">Download fit test</button>
+        </div>
+      </details>
+    </div>
+
+    <div class="stage-col">
+      <div class="stage" id="stage">
+        <span class="tag">drag to orbit · scroll to zoom · double-click to reset</span>
+        <button type="button" class="reset" id="resetView" title="Reset the camera">Reset view</button>
+      </div>
+      <div class="specs" id="specs"></div>
+      <div class="summary" id="summary"></div>
+      <div class="actions">
+        <button type="button" class="btn" id="dlStl">Download STL</button>
+        <button type="button" class="btn ghost" id="copyScad">Copy OpenSCAD settings</button>
+      </div>
+      <div class="status" role="status"><span id="status"></span><button type="button" class="chip quiet" id="undo" hidden>Undo</button></div>
+      <textarea class="copybox" id="copyFallback" readonly hidden aria-label="OpenSCAD settings"></textarea>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" integrity="sha384-CI3ELBVUz9XQO+97x6nwMDPosPR5XvsxW2ua7N1Xeygeh1IxtgqtCkGfQY9WWdHu" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js" integrity="sha384-wagZhIFgY4hD+7awjQjR4e2E294y6J2HSnd8eTNc15ZubTeQeVRZwhQJ+W6hnBsf" crossorigin="anonymous"></script>
+<script type="module" src="src/app.js"></script>
+
+</body>
+</html>
