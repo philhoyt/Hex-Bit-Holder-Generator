@@ -2,11 +2,15 @@
 
 Print custom holders for hex shank bits. Lay out rows of pockets for 1/4 in, 5/16 in, 4, 5, or 6 mm shanks (or any size you type in), label each hole, preview the holder in 3D, and download the STL.
 
-[![Hex Bit Holder Builder: a labeled driver set in the plan view, with the same holder in 3D](docs/screenshot.jpg)](docs/screenshot.jpg)
+[![Open the app](https://img.shields.io/badge/Open_the_app-Hex_Bit_Holder_Builder-E8671B?style=for-the-badge&labelColor=1C1C1A)](https://philhoyt.github.io/Hex-Bit-Holder-Generator/)
+
+[![Hex Bit Holder Builder: a labeled driver set in the plan view, with the same holder in 3D](docs/screenshot.jpg)](https://philhoyt.github.io/Hex-Bit-Holder-Generator/)
 
 It grew out of the [Storehouse Bin Builder](https://github.com/philhoyt/Storehouse-Bin-Generator) and shares its approach: a plain web page, its own mesh code, golden tests on the exported bytes, and an OpenSCAD twin. The holder itself follows the classic [Customizable Hex Bit Holder](https://www.thingiverse.com/thing:726700) on Thingiverse (rows of hex pockets, optional flex slots), rebuilt from scratch with labels and a flared mouth on every hole.
 
 ## Use it
+
+**[Open the Hex Bit Holder Builder](https://philhoyt.github.io/Hex-Bit-Holder-Generator/)**
 
 It runs in your browser. No install, no account. To run it from a local checkout, serve the folder (for example `npm run serve`, then open http://localhost:8766). Opening `index.html` straight from disk won't work, because the app is split into modules that browsers only load over HTTP.
 
